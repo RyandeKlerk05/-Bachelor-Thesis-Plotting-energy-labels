@@ -2,6 +2,7 @@
 Repository with all the necessary files for my bachelor thesis on energy labels for digital services. Contains the code, data and resulting figures from the simulations and experiments.
 
 Files:
+
  Simulation data:
   - Case1.java: The iFogSim simulation file for the surveillance application.
   - Case2.java: The iFogSim simulation file for the VR application.
