@@ -201,7 +201,7 @@ public class Case1 {
 			long startTime = System.currentTimeMillis();
 			TimeKeeper.getInstance().setSimulationStartTime(startTime);
 
-			CloudSim.terminateSimulation(1000);
+			CloudSim.terminateSimulation(2000);
 			CloudSim.startSimulation();
 			CloudSim.stopSimulation();
 
@@ -211,7 +211,7 @@ public class Case1 {
 
 			double totalSensors = numOfAreas * numOfCamerasPerArea;
 			double tupleRatePerSensor = 1.0 / getWorkloadValue();
-			throughput = (totalSensors * tupleRatePerSensor);
+			throughput = (totalSensors * tupleRatePerSensor * 1000);
 
 			// Print the relevant results.
 			printResults();
@@ -222,6 +222,8 @@ public class Case1 {
 			Log.printLine("Unwanted errors happen");
 		}
 	}
+
+	// -------------------------------------------- EVERYTHING PAST THIS IS UNCHANGED --------------------------------------------
 	
 	/**
 	 * Creates the fog devices in the physical topology of the simulation.
