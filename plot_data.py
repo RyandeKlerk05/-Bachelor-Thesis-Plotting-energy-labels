@@ -39,6 +39,8 @@ class PolicyType(Enum):
     COMPOSITE_DYNAMIC = 6
 
 
+ENERGY_SCALING_FACTOR = 4
+MAX_SIMULATION_TIME = 2000
 LABEL_COLORS = {
     "A": "green",
     "B": "limegreen",
@@ -68,6 +70,9 @@ def apply_policy(filename, policy):
         + df["Latency"]
     )
 
+    df["Energy_Usage"] = (df["Energy"] / ENERGY_SCALING_FACTOR
+                                       / MAX_SIMULATION_TIME)
+
     df = calculate_scores(df, policy)
     ranges = calculate_ranges(df, policy)
     df = apply_labels(df, ranges)
@@ -76,6 +81,7 @@ def apply_policy(filename, policy):
     print(df[[
         "Scenario",
         "Energy",
+        "Energy_Usage",
         "Throughput",
         "Delay",
         "Score",
@@ -96,16 +102,16 @@ def calculate_scores(df, policy):
         PolicyType.MEDIAN,
         PolicyType.PERCENTILE
     ]:
-        df["Score"] = df["Energy"]
+        df["Score"] = df["Energy_Usage"]
 
     # Ratio policy:
     elif policy == PolicyType.RATIO:
-        df["Score"] = df["Throughput"] / df["Energy"]
+        df["Score"] = df["Throughput"] / df["Energy_Usage"]
 
     # Composite policy:
     elif policy == PolicyType.COMPOSITE:
         # Normalize the data
-        df["Energy_NORM"] = normalize(df["Energy"])
+        df["Energy_NORM"] = normalize(df["Energy_Usage"])
         df["Throughput_NORM"] = normalize(df["Throughput"])
         df["Delay_NORM"] = normalize(df["Delay"])
 
@@ -115,7 +121,7 @@ def calculate_scores(df, policy):
     # Dynamic composite policy:
     elif policy == PolicyType.COMPOSITE_DYNAMIC:
         # Normalize the data
-        E = normalize(df["Energy"])
+        E = normalize(df["Energy_Usage"])
         T = normalize(df["Throughput"])
         D = normalize(df["Delay"])
 

@@ -121,11 +121,10 @@ public class Case2 {
 		System.out.println("Execution Time (s): " + executionTimeSec);
 
 		// Combined line for .csv file:
-		System.out.printf("%.3f, %.3f, %.3f, %.3f%n",
+		System.out.printf("%.3f, %.3f, %.3f%n",
 				totalEnergy,
 				throughput,
-				avgLoopDelay,
-				executionTimeSec
+				avgLoopDelay
 		);
 		System.out.println("==============================");
 	}
@@ -202,7 +201,7 @@ public class Case2 {
 			throughput = (totalSensors * tupleRatePerSensor * 1000);
 			System.out.println("Throughput (FPS): " + throughput);
 
-			// CloudSim.terminateSimulation(2000);
+			CloudSim.terminateSimulation(2000);
 			CloudSim.startSimulation();
 			CloudSim.stopSimulation();
 
