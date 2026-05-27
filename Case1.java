@@ -20,6 +20,7 @@ import org.fog.placement.ModulePlacementEdgewards;
 import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
+import org.fog.utils.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.TimeKeeper;
@@ -69,10 +70,10 @@ public class Case1 {
 
 	// Change these variables to modify the configuration!
 
-	static String DEPLOYMENT = "EDGE";
+	static String DEPLOYMENT = "SERVER";
 	static String WORKLOAD = "LOW";
 	static String LATENCY = "LOW";
-
+	
 	// Returns the workload level based on the input settings.
 	private static double getWorkloadValue() {
         return switch (WORKLOAD) {
@@ -101,6 +102,8 @@ public class Case1 {
 			totalEnergy += device.getEnergyConsumption();
 		}
 
+		executionTimeSec = Config.MAX_SIMULATION_TIME;
+
 		System.out.println("\n\n\n==============================");
 		System.out.println("CONFIGURATION RESULTS");
 		System.out.println("==============================");
@@ -124,7 +127,6 @@ public class Case1 {
 				.average().orElse(0);
 
 		System.out.println("Avg Loop Delay (ms): " + avgLoopDelay);
-
 		System.out.println("Execution Time (s): " + executionTimeSec);
 
 		// Combined line for .csv file:
@@ -136,7 +138,7 @@ public class Case1 {
         );
 		System.out.println("==============================");
 	}
-	
+
 	public static void main(String[] args) {
 		try {
 			Log.disable();
@@ -147,19 +149,19 @@ public class Case1 {
 			CloudSim.init(num_user, calendar, trace_flag);
 
 			String appId = "dcns"; // identifier of the application
-			
+
 			FogBroker broker = new FogBroker("broker");
-			
+
 			Application application = createApplication(appId, broker.getId());
 			application.setUserId(broker.getId());
-			
+
 			createFogDevices(broker.getId(), appId);
-			
+
 			Controller controller = null;
-			
+
 			ModuleMapping moduleMapping = ModuleMapping.createModuleMapping(); // initializing a module mapping
 			for(FogDevice device : fogDevices){
-				if(device.getName().startsWith("m")){ // names of all Smart Cameras start with 'm' 
+				if(device.getName().startsWith("m")){ // names of all Smart Cameras start with 'm'
 					moduleMapping.addModuleToDevice("motion_detector", device.getName());  // fixing 1 instance of the Motion Detector module to each Smart Camera
 				}
 			}
@@ -183,13 +185,13 @@ public class Case1 {
 					moduleMapping.addModuleToDevice("object_detector", "cloud");
 					moduleMapping.addModuleToDevice("object_tracker", "cloud");
 					break;
-				case "BALANCED":
+				case "BALANCED": // Similar to the Router_Proxy mode.
 					moduleMapping.addModuleToDevice("object_detector", "d-0");
 					moduleMapping.addModuleToDevice("object_tracker", "proxy-server");
 					break;
 			}
 
-			controller = new Controller("master-controller", fogDevices, sensors, 
+			controller = new Controller("master-controller", fogDevices, sensors,
 					actuators);
 
 			controller.submitApplication(
@@ -197,18 +199,11 @@ public class Case1 {
 					new ModulePlacementMapping(fogDevices, application, moduleMapping)
 			);
 
-			// Keeps track of execution time.
-			long startTime = System.currentTimeMillis();
-			TimeKeeper.getInstance().setSimulationStartTime(startTime);
-
 			CloudSim.terminateSimulation(2000);
 			CloudSim.startSimulation();
 			CloudSim.stopSimulation();
 
-			// Calculates execution time and throughput.
-			long endTime = System.currentTimeMillis();
-			executionTimeSec = (endTime - startTime) / 1000.0;
-
+			// Calculates the throughput.
 			double totalSensors = numOfAreas * numOfCamerasPerArea;
 			double tupleRatePerSensor = 1.0 / getWorkloadValue();
 			throughput = (totalSensors * tupleRatePerSensor * 1000);
@@ -224,17 +219,17 @@ public class Case1 {
 	}
 
 	// -------------------------------------------- EVERYTHING PAST THIS IS UNCHANGED --------------------------------------------
-	
+
 	/**
 	 * Creates the fog devices in the physical topology of the simulation.
 	 * @param userId
 	 * @param appId
 	 */
 	private static void createFogDevices(int userId, String appId) {
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 100, 10000, 0, 0.01, 16*103, 16*83.25);
+		FogDevice cloud = createFogDevice("cloud", 11200, 40000, 100, 10000, 0, 0.01, 0.25*16*103, 0.25*16*83.25);
 		cloud.setParentId(-1);
 		fogDevices.add(cloud);
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 10000, 10000, 1, 0.0, 107.339, 83.4333);
+		FogDevice proxy = createFogDevice("proxy-server", 700, 4000, 10000, 10000, 1, 0.0, 0.25*107.339, 0.25*83.4333);
 		proxy.setParentId(cloud.getId());
 		proxy.setUplinkLatency(100); // latency of connection between proxy server and cloud is 100 ms
 		fogDevices.add(proxy);
@@ -244,7 +239,7 @@ public class Case1 {
 	}
 
 	private static FogDevice addArea(String id, int userId, String appId, int parentId){
-		FogDevice router = createFogDevice("d-"+id, 2800, 4000, 10000, 10000, 1, 0.0, 107.339, 83.4333);
+		FogDevice router = createFogDevice("d-"+id, 700, 4000, 10000, 10000, 1, 0.0, 0.25*107.339, 0.25*83.4333);
 		fogDevices.add(router);
 		router.setUplinkLatency(getLatencyValue()); // latency of connection between router and proxy server
 		for(int i=0;i<numOfCamerasPerArea;i++){
@@ -256,9 +251,9 @@ public class Case1 {
 		router.setParentId(parentId);
 		return router;
 	}
-	
+
 	private static FogDevice addCamera(String id, int userId, String appId, int parentId){
-		FogDevice camera = createFogDevice("m-"+id, 500, 1000, 10000, 10000, 3, 0, 87.53, 82.44);
+		FogDevice camera = createFogDevice("m-"+id, 125, 1000, 10000, 10000, 3, 0, 0.25*87.53, 0.25*82.44);
 		camera.setParentId(parentId);
 		Sensor sensor = new Sensor("s-"+id, "CAMERA", userId, appId, new DeterministicDistribution(getWorkloadValue())); // inter-transmission time of camera (sensor) follows a deterministic distribution
 		sensors.add(sensor);
@@ -270,7 +265,7 @@ public class Case1 {
 		ptz.setLatency(1.0);  // latency of connection between PTZ Control and the parent Smart Camera is 1 ms
 		return camera;
 	}
-	
+
 	/**
 	 * Creates a vanilla fog device
 	 * @param nodeName name of the device to be used in simulation
@@ -286,7 +281,7 @@ public class Case1 {
 	 */
 	private static FogDevice createFogDevice(String nodeName, long mips,
 			int ram, long upBw, long downBw, int level, double ratePerMips, double busyPower, double idlePower) {
-		
+
 		List<Pe> peList = new ArrayList<Pe>();
 
 		// 3. Create PEs and add these into a list.
@@ -327,25 +322,25 @@ public class Case1 {
 
 		FogDevice fogdevice = null;
 		try {
-			fogdevice = new FogDevice(nodeName, characteristics, 
+			fogdevice = new FogDevice(nodeName, characteristics,
 					new AppModuleAllocationPolicy(hostList), storageList, 10, upBw, downBw, 0, ratePerMips);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		fogdevice.setLevel(level);
 		return fogdevice;
 	}
 
 	/**
-	 * Function to create the Intelligent Surveillance application in the DDF model. 
+	 * Function to create the Intelligent Surveillance application in the DDF model.
 	 * @param appId unique identifier of the application
 	 * @param userId identifier of the user of the application
 	 * @return
 	 */
 	@SuppressWarnings({"serial" })
 	private static Application createApplication(String appId, int userId){
-		
+
 		Application application = Application.createApplication(appId, userId);
 		/*
 		 * Adding modules (vertices) to the application model (directed graph)
@@ -354,7 +349,7 @@ public class Case1 {
 		application.addAppModule("motion_detector", 10);
 		application.addAppModule("object_tracker", 10);
 		application.addAppModule("user_interface", 10);
-		
+
 		/*
 		 * Connecting the application modules (vertices) in the application model (directed graph) with edges
 		 */
@@ -363,22 +358,22 @@ public class Case1 {
 		application.addAppEdge("object_detector", "user_interface", 500, 2000, "DETECTED_OBJECT", Tuple.UP, AppEdge.MODULE); // adding edge from Object Detector to User Interface module carrying tuples of type DETECTED_OBJECT
 		application.addAppEdge("object_detector", "object_tracker", 1000, 100, "OBJECT_LOCATION", Tuple.UP, AppEdge.MODULE); // adding edge from Object Detector to Object Tracker module carrying tuples of type OBJECT_LOCATION
 		application.addAppEdge("object_tracker", "PTZ_CONTROL", 100, 28, 100, "PTZ_PARAMS", Tuple.DOWN, AppEdge.ACTUATOR); // adding edge from Object Tracker to PTZ CONTROL (actuator) carrying tuples of type PTZ_PARAMS
-		
+
 		/*
-		 * Defining the input-output relationships (represented by selectivity) of the application modules. 
+		 * Defining the input-output relationships (represented by selectivity) of the application modules.
 		 */
 		application.addTupleMapping("motion_detector", "CAMERA", "MOTION_VIDEO_STREAM", new FractionalSelectivity(1.0)); // 1.0 tuples of type MOTION_VIDEO_STREAM are emitted by Motion Detector module per incoming tuple of type CAMERA
 		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "OBJECT_LOCATION", new FractionalSelectivity(1.0)); // 1.0 tuples of type OBJECT_LOCATION are emitted by Object Detector module per incoming tuple of type MOTION_VIDEO_STREAM
 		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "DETECTED_OBJECT", new FractionalSelectivity(0.05)); // 0.05 tuples of type MOTION_VIDEO_STREAM are emitted by Object Detector module per incoming tuple of type MOTION_VIDEO_STREAM
-	
+
 		/*
-		 * Defining application loops (maybe incomplete loops) to monitor the latency of. 
+		 * Defining application loops (maybe incomplete loops) to monitor the latency of.
 		 * Here, we add two loops for monitoring : Motion Detector -> Object Detector -> Object Tracker and Object Tracker -> PTZ Control
 		 */
 		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}});
 		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}});
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);add(loop2);}};
-		
+
 		application.setLoops(loops);
 		return application;
 	}
