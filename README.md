@@ -9,6 +9,7 @@ Files:
 
 Applying policies:
  - plot_data.py: Calculates scores and ranges, applies the policies and plots the data.
+ - multi_policy.py: Applies the multi-application policy on multiple datasets at once.
 
 /plotting_data:
  - case1.csv: Raw simulation data for for the surveillance application.
