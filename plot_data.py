@@ -39,7 +39,7 @@ class PolicyType(Enum):
     COMPOSITE_DYNAMIC = 6
 
 
-ENERGY_NORMALIZATIOn_FACTOR = 1000
+ENERGY_NORMALIZATION_FACTOR = 1000
 LABEL_COLORS = {
     "A": "green",
     "B": "limegreen",
@@ -69,7 +69,7 @@ def apply_policy(filename, policy):
         + df["Latency"]
     )
 
-    df["Energy_Usage"] = (df["Energy"] / ENERGY_NORMALIZATIOn_FACTOR)          
+    df["Energy_Usage"] = (df["Energy"] / ENERGY_NORMALIZATION_FACTOR)
 
     df = calculate_scores(df, policy)
     ranges = calculate_ranges(df, policy)
