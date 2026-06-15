@@ -6,6 +6,7 @@ Files:
  Simulation data:
   - Case1.java: The iFogSim simulation file for the surveillance application.
   - Case2.java: The iFogSim simulation file for the VR application.
+  - Case3.java: The iFogSim simulation file for the healtcare system.
 
 Applying policies:
  - plot_data.py: Calculates scores and ranges, applies the policies and plots the data.
@@ -14,7 +15,9 @@ Applying policies:
 /plotting_data:
  - case1.csv: Raw simulation data for for the surveillance application.
  - case2.csv: Raw simulation data for for the VR application.
+ - case3.csv: Raw simulation data for for the healtcare system.
 
 /results:
  - /case1_figures: The bar graphs for each policy applied to the surveillance application.
- - /case2_figures: The bar graphs for each policy applied to the VR application..
+ - /case2_figures: The bar graphs for each policy applied to the VR application.
+ - /case3_figures: The bar graphs for the multi-application policy.
