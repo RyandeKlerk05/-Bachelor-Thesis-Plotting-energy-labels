@@ -1,13 +1,13 @@
 # -Bachelor-Thesis-Plotting-energy-labels
 Repository containing the code, data, and resulting figures used in the bachelor thesis "Assigning Energy Labels for Digital Services".
 
-The repository includes:
+**The repository includes:**
  - iFogSim2 simulation files for the case studies
  - Raw simulation output data
  - Python scripts for applying the proposed labeling policies
  - Generated figures used throughout the thesis
 
-Files:
+**Files:**
 
  Simulation data:
   - Case1.java: The iFogSim simulation file for the surveillance application.
